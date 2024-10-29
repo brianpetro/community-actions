@@ -1,9 +1,16 @@
 export async function list_tweets(params) {
-  const { url, limit = 20 } = params;
+  let { url, search, limit = 10 } = params;
+  console.log('list_tweets', params);
 
-  if (!url) {
-    return { error: "url parameter is required" };
+  if (search) {
+    const encoded_search = encodeURIComponent(search);
+    url = `https://x.com/search?q=${encoded_search}&f=live`;
+  } else if (!url) {
+    url = params.action_settings.default_url || 'https://x.com/home';
   }
+
+  if(!url.startsWith('http')) url = 'https://' + url;
+  if(url.includes('twitter.com')) url = url.replace('twitter.com', 'x.com');
 
   if (typeof url !== 'string') {
     return { error: "url must be a string" };
@@ -14,7 +21,7 @@ export async function list_tweets(params) {
   }
 
   if (typeof limit !== 'number' || limit <= 0) {
-    return { error: "limit must be a positive integer" };
+    limit = params.action_settings.default_limit || 10;
   }
 
   const script = `
@@ -134,7 +141,7 @@ export async function list_tweets(params) {
                 username: username,
                 display_name: displayName,
                 tweet_id: tweetID,
-                tweet_url: tweetURL,
+                tweet_url: tweetURL.startsWith('https://x.com') ? tweetURL : 'https://x.com' + tweetURL,
                 timestamp: timestamp,
                 replies: replies,
                 reposts: reposts,
@@ -200,17 +207,31 @@ export async function list_tweets(params) {
     const result = await params.browser.open(url, {
       script
     });
-    return result;
+    return { ...result, source_url: url };
   } catch (error) {
     return { error: error.message || "Failed to list tweets" };
   }
 }
 
+export const settings_config = {
+  default_url: {
+    name: 'Tweet list: Default URL',
+    type: 'text',
+    description: 'The default URL to list tweets from.',
+  },
+  default_limit: {
+    name: 'Tweet list: Default Limit',
+    type: 'number',
+    description: 'The default number of tweets to list.',
+    default: 10,
+  },
+};
+
 export const openapi = {
   "openapi": "3.1.0",
   "info": {
     "title": "List Tweets",
-    "description": "List tweets from a given X (Twitter) URL",
+    "description": "List tweets from X (Twitter).",
     "version": "1.1.0" // Updated version
   },
   "servers": [{"url": "UNUSED"}],
@@ -226,16 +247,19 @@ export const openapi = {
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["url"],
                 "properties": {
                   "url": {
                     "type": "string",
-                    "description": "The X (Twitter) URL to list tweets from"
+                    "description": "The X (Twitter) URL to list tweets from. If not provided and no search query, uses default from settings or else uses home timeline."
+                  },
+                  "search": {
+                    "type": "string",
+                    "description": "Search query to find tweets. If provided, overrides the URL parameter."
                   },
                   "limit": {
-                    "type": "integer",
-                    "description": "The maximum number of tweets to retrieve (default is 20)",
-                    "default": 20
+                    "type": "integer", 
+                    "description": "The maximum number of tweets to retrieve (default is 10)",
+                    "default": 10
                   }
                 }
               }
@@ -250,6 +274,10 @@ export const openapi = {
                 "schema": {
                   "type": "object",
                   "properties": {
+                    "source_url": {
+                      "type": "string",
+                      "description": "The URL that was used to retrieve the tweets."
+                    },
                     "tweets": {
                       "type": "array",
                       "items": {
@@ -502,6 +530,19 @@ export const test = {
       assert: async (assert, resp, env) => {
         assert.strictEqual(resp.success, false, "Should return failure");
         assert.strictEqual(resp.error, "Failed to list tweets", "Should return ipcRenderer error message");
+      }
+    },
+    {
+      name: "handles search parameter correctly",
+      params: {
+        search: "test query",
+        limit: 5
+      },
+      assert: async (assert, resp, env) => {
+        assert.strictEqual(resp.success, true, "Should return success");
+        assert(Array.isArray(resp.tweets), "tweets should be an array");
+        assert.strictEqual(resp.tweets.length, 5, "Should have 5 tweets as per limit");
+        assert.strictEqual(resp.source_url, "https://x.com/search?q=test%20query&f=live", "Should construct correct search URL");
       }
     }
   ]

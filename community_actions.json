@@ -1,0 +1,22 @@
+[
+  {
+    "name": "like_tweet",
+    "description": "Likes a tweet.",
+    "path": "x_like.mjs"
+  },
+  {
+    "name": "bookmark_tweet",
+    "description": "Bookmarks a tweet.",
+    "path": "x_bookmark.mjs"
+  },
+  {
+    "name": "list_tweets",
+    "description": "Lists tweets from a given URL.",
+    "path": "x_list.mjs"
+  },
+  {
+    "name": "schedule_tweet",
+    "description": "Schedules a tweet to be posted at a future date.",
+    "path": "x_schedule.mjs"
+  }
+]
