@@ -18,5 +18,15 @@
     "name": "schedule_tweet",
     "description": "Schedules a tweet to be posted at a future date.",
     "path": "x_schedule.mjs"
+  },
+  {
+    "name": "list_notifications",
+    "description": "Lists notifications.",
+    "path": "x_notifications.mjs"
+  },
+  {
+    "name": "retweet_tweet",
+    "description": "Retweets a tweet.",
+    "path": "x_retweet.mjs"
   }
 ]
