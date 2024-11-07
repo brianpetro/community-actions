@@ -1,20 +1,26 @@
 # Smart Connect Community Actions
 
-## Adding Custom Actions
+Smart Connect Community Actions is an open ecosystem of custom actions that extend the capabilities of Smart Connect. Our mission is to empower users to contribute and share powerful automation tools that make Smart Connect even more versatile.
 
-1. Add the `CUSTOM_ACTION.mjs` file to your Smart Connect custom actions using the "Add action" button in the Smart Connect Desktop App (Actions section)
-2. Add to a Smart Connect Custom GPT
-3. Update the OpenAPI schema for the Custom GPT in the ChatGPT GPT editor
+Read the [Smart Connect Custom Actions and Community Actions](https://docs.smartconnections.app/Smart-Connect-app/Custom-Actions-and-Community-Actions) for more information.
 
-## Developing Custom Actions
+## Why Contribute?
 
-### Browser Methods
-`params.browser` is an object that provides methods for interacting with the browser (all methods return promises).
+- Extend Smart Connect's functionality with your custom workflows
+- Share your solutions with the community
+- Help build a vibrant ecosystem of automation tools
+- Learn from and build upon other community contributions
 
-- `open(url, opts={})` - Open a browser window to the given URL
-  - `opts.url` (string): The URL to open (required)
-  - `opts.script` (string): The script to execute after the page has loaded
-  - `opts.ensure_url_loaded` (boolean): If true, will ensure page is on the given URL before executing the script
-- `run_script(script)` - Run a script in the currently open browser window
-- `get_page_url()` - Get the URL of the currently open browser window
-  - Returns false if no page is open
+## Building and Contributing Community Actions
+
+Learn more about building and contributing community actions in the [Build Smart Actions](https://docs.smartconnections.app/Smart-Connect-app/Build-Smart-Actions) section of the Smart Connect documentation.
+
+Here's how you can contribute:
+
+1. **Submit Simple Actions**
+   - Create a pull request to add your action to the `actions/` folder
+   - Include clear documentation and examples
+
+2. **Complex Actions**
+   - For actions with additional dependencies, you can maintain them in a separate repository and build a distribution file using tools like esbuild
+   - Submit a PR to add your action's repository URL to `community-actions.json`
