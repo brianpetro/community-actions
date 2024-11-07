@@ -28,5 +28,10 @@
     "name": "retweet_tweet",
     "description": "Retweets a tweet.",
     "path": "x_retweet.mjs"
+  },
+  {
+    "name": "draft_tweet",
+    "description": "Drafts a tweet.",
+    "path": "x_draft.mjs"
   }
 ]
