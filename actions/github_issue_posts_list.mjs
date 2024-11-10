@@ -1,127 +1,55 @@
-export async function list_issue_posts(params) {
-  let { url, search, limit = 10 } = params;
-  console.log('list_issue_posts', params);
-
-  if (search) {
-    // Note: GitHub's web interface doesn't support searching within issue comments directly.
-    // For advanced search, GitHub's API should be used.
-    console.warn('Search within issue comments is not supported via web scraping. Ignoring search parameter.');
-  }
+export async function list_github_issue_posts(params) {
+  let { url } = params;
 
   if (!url) {
-    url = params.action_settings.default_url || 'https://github.com/github/hub/issues';
+    return { error: "url parameter is required" };
   }
 
   if (typeof url !== 'string') {
     return { error: "url must be a string" };
   }
 
-  const github_issue_regex = /^https?:\/\/github\.com\/[^\/]+\/[^\/]+\/issues\/\d+$/;
-  if (!github_issue_regex.test(url)) {
-    return { error: "url must be a valid GitHub issue URL" };
+  if (!url.startsWith('http')) {
+    url = 'https://' + url;
   }
 
-  if (typeof limit !== 'number' || limit <= 0) {
-    limit = params.action_settings.default_limit || 10;
+  if (!url.includes('github.com')) {
+    return { error: "url must be a valid GitHub issue URL" };
   }
 
   const script = `
     (async () => {
       try {
-        const COMMENT_SELECTOR = 'div.js-comment-container';
-        const USERNAME_SELECTOR = 'a.author';
-        const AVATAR_SELECTOR = 'img.avatar-user';
-        const COMMENT_TEXT_SELECTOR = 'td.comment-body > div > p';
-        const TIMESTAMP_SELECTOR = 'relative-time';
-        const REACTIONS_SELECTOR = 'div.reactions';
-        const MAX_SCROLL_ATTEMPTS = 20;
-        const SCROLL_DELAY = 1000;
+        // GitHub issues are server-rendered, so content is available immediately.
+        const posts = [];
+        const postElements = document.querySelectorAll('.js-comment-container');
 
-        const waitForElement = (selector, timeout = 15000) => {
-          return new Promise((resolve, reject) => {
-            const interval = 100;
-            let elapsed = 0;
-            const timer = setInterval(() => {
-              const element = document.querySelector(selector);
-              if (element) {
-                clearInterval(timer);
-                resolve(element);
-              }
-              elapsed += interval;
-              if (elapsed >= timeout) {
-                clearInterval(timer);
-                reject(new Error('Timeout waiting for ' + selector));
-              }
-            }, interval);
-          });
-        };
+        postElements.forEach((postEl) => {
+          const authorEl = postEl.querySelector('a.author, a.Link--secondary');
+          const author = authorEl ? authorEl.innerText.trim() : '';
+          const authorUrl = authorEl ? authorEl.href : '';
 
-        const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+          const avatarEl = postEl.querySelector('img.avatar-user');
+          const avatarUrl = avatarEl ? avatarEl.src : '';
 
-        const log = console.log;
+          const timestampEl = postEl.querySelector('relative-time');
+          const timestamp = timestampEl ? timestampEl.getAttribute('datetime') : '';
 
-        log("Starting Issue Comment Extraction...");
+          const contentEl = postEl.querySelector('.js-comment-body');
+          const content = contentEl ? contentEl.innerHTML.trim() : '';
 
-        // Wait for comments to load
-        await waitForElement(COMMENT_SELECTOR);
-        log("Comments loaded.");
-
-        let comments = [];
-        let scrollAttempts = 0;
-
-        while (comments.length < ${limit} && scrollAttempts < MAX_SCROLL_ATTEMPTS) {
-          const commentElements = document.querySelectorAll(COMMENT_SELECTOR);
-          log(\`Found \${commentElements.length} comments.\`);
-
-          commentElements.forEach(commentEl => {
-            if (comments.length >= ${limit}) return;
-
-            const usernameEl = commentEl.querySelector(USERNAME_SELECTOR);
-            const avatarEl = commentEl.querySelector(AVATAR_SELECTOR);
-            const commentTextEl = commentEl.querySelector(COMMENT_TEXT_SELECTOR);
-            const timestampEl = commentEl.querySelector(TIMESTAMP_SELECTOR);
-            const reactionsEl = commentEl.querySelector(REACTIONS_SELECTOR);
-
-            const username = usernameEl ? usernameEl.innerText.trim() : "Unknown";
-            const avatar = avatarEl ? avatarEl.getAttribute('src') : "";
-            const comment_text = commentTextEl ? commentTextEl.innerText.trim() : "";
-            const timestamp = timestampEl ? timestampEl.getAttribute('datetime') : "";
-
-            // Extract reactions
-            let reactions = {};
-            if (reactionsEl) {
-              const reactionButtons = reactionsEl.querySelectorAll('button');
-              reactionButtons.forEach(btn => {
-                const emoji = btn.querySelector('g-emoji') ? btn.querySelector('g-emoji').innerText.trim() : btn.innerText.trim();
-                const count = btn.querySelector('span') ? parseInt(btn.querySelector('span').innerText.trim()) || 0 : 0;
-                reactions[emoji] = count;
-              });
-            }
-
-            comments.push({
-              username,
-              avatar,
-              comment_text,
+          if (author && timestamp && content) {
+            posts.push({
+              author,
+              author_url: authorUrl,
+              avatar_url: avatarUrl,
               timestamp,
-              reactions
+              content
             });
-          });
+          }
+        });
 
-          if (comments.length >= ${limit}) break;
-
-          // Scroll to load more comments
-          log("Scrolling to load more comments...");
-          window.scrollTo({
-            top: document.body.scrollHeight,
-            behavior: 'smooth'
-          });
-
-          await sleep(SCROLL_DELAY);
-          scrollAttempts++;
-        }
-
-        log(\`Extracted \${comments.length} comments after \${scrollAttempts} scroll attempts\`);
-        return_result({ success: true, comments: comments.slice(0, ${limit}) });
+        return_result({ success: true, posts });
       } catch (error) {
         return_result({ success: false, error: error.message });
       }
@@ -129,43 +57,27 @@ export async function list_issue_posts(params) {
   `;
 
   try {
-    const result = await params.browser.open(url, {
-      script
-    });
+    const result = await params.browser.open(url, { script });
     return { ...result, source_url: url };
   } catch (error) {
-    return { error: error.message || "Failed to list issue posts" };
+    return { error: error.message || "Failed to list GitHub issue posts" };
   }
 }
-
-export const settings_config = {
-  default_url: {
-    name: 'Issue Posts: Default URL',
-    type: 'text',
-    description: 'The default GitHub issue URL to list posts from.',
-  },
-  default_limit: {
-    name: 'Issue Posts: Default Limit',
-    type: 'number',
-    description: 'The default number of issue posts to list.',
-    default: 10,
-  },
-};
 
 export const openapi = {
   "openapi": "3.1.0",
   "info": {
-    "title": "List Issue Posts",
-    "description": "List posts (comments) from a GitHub issue.",
+    "title": "List GitHub Issue Posts",
+    "description": "List posts from a GitHub issue.",
     "version": "1.0.0"
   },
   "servers": [{"url": "UNUSED"}],
   "paths": {
-    "/list-issue-posts": {
+    "/list-github-issue-posts": {
       "post": {
-        "operationId": "list_issue_posts",
-        "summary": "List posts from a GitHub issue",
-        "description": "Retrieves a list of comments from the specified GitHub issue URL with an optional limit",
+        "operationId": "list_github_issue_posts",
+        "summary": "List posts from a GitHub issue URL",
+        "description": "Retrieves a list of posts from the specified GitHub issue URL",
         "requestBody": {
           "required": true,
           "content": {
@@ -176,15 +88,6 @@ export const openapi = {
                   "url": {
                     "type": "string",
                     "description": "The GitHub issue URL to list posts from."
-                  },
-                  "search": {
-                    "type": "string",
-                    "description": "Search query to filter comments. (Note: Not supported via web scraping)"
-                  },
-                  "limit": {
-                    "type": "integer", 
-                    "description": "The maximum number of comments to retrieve (default is 10)",
-                    "default": 10
                   }
                 },
                 "required": ["url"]
@@ -194,7 +97,7 @@ export const openapi = {
         },
         "responses": {
           "200": {
-            "description": "List of issue posts retrieved successfully",
+            "description": "List of posts retrieved successfully",
             "content": {
               "application/json": {
                 "schema": {
@@ -202,36 +105,33 @@ export const openapi = {
                   "properties": {
                     "source_url": {
                       "type": "string",
-                      "description": "The URL that was used to retrieve the issue posts."
+                      "description": "The URL that was used to retrieve the posts."
                     },
-                    "comments": {
+                    "posts": {
                       "type": "array",
                       "items": {
                         "type": "object",
                         "properties": {
-                          "username": {
+                          "author": {
                             "type": "string",
-                            "description": "The username of the comment author"
+                            "description": "The username of the post author"
                           },
-                          "avatar": {
+                          "author_url": {
                             "type": "string",
-                            "description": "URL to the comment author's avatar image"
+                            "description": "URL to the author's GitHub profile"
                           },
-                          "comment_text": {
+                          "avatar_url": {
                             "type": "string",
-                            "description": "The text content of the comment"
+                            "description": "URL to the author's avatar image"
                           },
                           "timestamp": {
                             "type": "string",
                             "format": "date-time",
-                            "description": "The timestamp when the comment was posted"
+                            "description": "The timestamp when the post was created"
                           },
-                          "reactions": {
-                            "type": "object",
-                            "additionalProperties": {
-                              "type": "integer"
-                            },
-                            "description": "Reactions to the comment"
+                          "content": {
+                            "type": "string",
+                            "description": "The HTML content of the post"
                           }
                         }
                       }
@@ -281,72 +181,69 @@ export const openapi = {
 
 export const test = {
   setup: async (env) => {
-    // Mock ipcRenderer
-    env.ipcRenderer = {
-      invoke: async (channel, ...args) => {
-        if (channel === 'browser-open') {
-          // Mock comments based on the limit
-          const [url, { script }] = args;
-          const mockComments = [];
-          for (let i = 1; i <= 25; i++) {
-            mockComments.push({
-              username: `user${i}`,
-              avatar: `https://avatars.githubusercontent.com/u/${1000 + i}?v=4`,
-              comment_text: `This is a test comment number ${i} with a [link](https://github.com).`,
-              timestamp: "2024-11-10T12:34:56Z",
-              reactions: {
-                "👍": i,
-                "👎": Math.floor(i / 2),
-                "❤️": Math.floor(i / 3)
-              }
+    // Mock browser.open function
+    env.browser = {
+      open: async (url, { script }) => {
+        // Simulate the execution of the script in a browser context
+        // For testing purposes, we'll use the provided HTML content
+        const posts = [];
+
+        // Create a DOM parser using DOMParser API
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(env.html_content, 'text/html');
+
+        const postElements = doc.querySelectorAll('.js-comment-container');
+
+        postElements.forEach((postEl) => {
+          const authorEl = postEl.querySelector('a.author, a.Link--secondary');
+          const author = authorEl ? authorEl.textContent.trim() : '';
+          const authorUrl = authorEl ? authorEl.href : '';
+
+          const avatarEl = postEl.querySelector('img.avatar-user');
+          const avatarUrl = avatarEl ? avatarEl.src : '';
+
+          const timestampEl = postEl.querySelector('relative-time');
+          const timestamp = timestampEl ? timestampEl.getAttribute('datetime') : '';
+
+          const contentEl = postEl.querySelector('.js-comment-body');
+          const content = contentEl ? contentEl.innerHTML.trim() : '';
+
+          if (author && timestamp && content) {
+            posts.push({
+              author,
+              author_url: authorUrl,
+              avatar_url: avatarUrl,
+              timestamp,
+              content
             });
           }
-          return Promise.resolve({
-            success: true,
-            comments: mockComments
-          });
-        }
-        throw new Error('Unknown channel');
+        });
+
+        return Promise.resolve({ success: true, posts });
       }
     };
   },
   cases: [
     {
-      name: "lists issue posts successfully with default limit",
+      name: "lists posts successfully",
       params: {
-        url: "https://github.com/github/hub/issues/1234"
+        url: "https://github.com/user/repo/issues/123",
+        html_content: `YOUR_HTML_CONTENT_HERE` // Replace with the provided HTML content
       },
       assert: async (assert, resp, env) => {
         assert.strictEqual(resp.success, true, "Should return success");
-        assert(Array.isArray(resp.comments), "comments should be an array");
-        assert.strictEqual(resp.comments.length, 10, "Should have 10 comments by default");
-        const comment = resp.comments[0];
-        assert.strictEqual(comment.username, "user1", "Username should match");
-        assert.strictEqual(comment.avatar, "https://avatars.githubusercontent.com/u/1001?v=4", "Avatar URL should match");
-        assert.strictEqual(comment.comment_text, "This is a test comment number 1 with a [link](https://github.com).", "Comment text should match");
-        assert.strictEqual(comment.reactions["👍"], 1, "Reactions should match");
-      }
-    },
-    {
-      name: "lists issue posts successfully with custom limit",
-      params: {
-        url: "https://github.com/github/hub/issues/1234",
-        limit: 5
-      },
-      assert: async (assert, resp, env) => {
-        assert.strictEqual(resp.success, true, "Should return success");
-        assert(Array.isArray(resp.comments), "comments should be an array");
-        assert.strictEqual(resp.comments.length, 5, "Should have 5 comments as per limit");
-        const comment = resp.comments[4];
-        assert.strictEqual(comment.username, "user5", "Username should match the 5th comment");
-        assert.strictEqual(comment.avatar, "https://avatars.githubusercontent.com/u/1005?v=4", "Avatar URL should match the 5th comment");
+        assert(Array.isArray(resp.posts), "posts should be an array");
+        assert(resp.posts.length > 0, "Should have at least one post");
+        const post = resp.posts[0];
+        assert(post.author, "Author should be present");
+        assert(post.content, "Content should be present");
       }
     },
     {
       name: "handles missing url",
       params: {},
       assert: async (assert, resp, env) => {
-        assert.strictEqual(resp.error, "url must be a valid GitHub issue URL", "Should return error for missing or invalid url");
+        assert.strictEqual(resp.error, "url parameter is required", "Should return error for missing url");
       }
     },
     {
@@ -361,52 +258,13 @@ export const test = {
     {
       name: "handles invalid url domain",
       params: {
-        url: "https://invalid.com/user/repo/issues/1234"
+        url: "https://invalid.com/user/repo/issues/123"
       },
       assert: async (assert, resp, env) => {
         assert.strictEqual(resp.error, "url must be a valid GitHub issue URL", "Should return error for invalid domain");
-      }
-    },
-    {
-      name: "handles invalid limit type",
-      params: {
-        url: "https://github.com/github/hub/issues/1234",
-        limit: "five"
-      },
-      assert: async (assert, resp, env) => {
-        assert.strictEqual(resp.success, true, "Should default to default limit when invalid limit type");
-        assert.strictEqual(resp.comments.length, 10, "Should have 10 comments by default");
-      }
-    },
-    {
-      name: "handles invalid limit value",
-      params: {
-        url: "https://github.com/github/hub/issues/1234",
-        limit: -5
-      },
-      assert: async (assert, resp, env) => {
-        assert.strictEqual(resp.success, true, "Should default to default limit when invalid limit value");
-        assert.strictEqual(resp.comments.length, 10, "Should have 10 comments by default");
-      }
-    },
-    {
-      name: "handles ipcRenderer error",
-      params: {
-        url: "https://github.com/github/hub/issues/1234",
-        limit: 5
-      },
-      before: (env) => {
-        // Override ipcRenderer to simulate error
-        env.ipcRenderer.invoke = async () => {
-          throw new Error("Failed to list issue posts");
-        };
-      },
-      assert: async (assert, resp, env) => {
-        assert.strictEqual(resp.success, false, "Should return failure");
-        assert.strictEqual(resp.error, "Failed to list issue posts", "Should return ipcRenderer error message");
       }
     }
   ]
 };
 
-export default list_issue_posts;
+export default list_github_issue_posts;

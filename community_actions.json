@@ -33,5 +33,20 @@
     "name": "draft_tweet",
     "description": "Drafts a tweet.",
     "path": "x_draft.mjs"
+  },
+  {
+    "name": "github_issue_list",
+    "description": "Lists issues from a GitHub repository.",
+    "path": "github_issue_list.mjs"
+  },
+  {
+    "name": "github_issue_posts_list",
+    "description": "Lists posts from a GitHub issue.",
+    "path": "github_issue_posts_list.mjs"
+  },
+  {
+    "name": "github_reply_to_issue",
+    "description": "Replies to a GitHub issue.",
+    "path": "github_reply_to_issue.mjs"
   }
 ]
