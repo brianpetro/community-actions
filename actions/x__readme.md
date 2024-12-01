@@ -23,6 +23,13 @@ Discover and compile tweets from specific sources or based on search queries. Th
 - Optionally, set a limit for the number of tweets to retrieve.
 - The action will return a list of tweets matching your criteria.
 
+### example prompts
+```
+Get my bookmarked tweets
+https://x.com/i/bookmarks
+```
+
+
 ## List Notifications
 Stay informed about your recent interactions on X. This action fetches your latest notifications, including likes, retweets, mentions, follows, and replies, helping you keep track of your account activity.
 - Optionally, specify the maximum number of notifications to retrieve.
