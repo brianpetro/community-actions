@@ -35,9 +35,9 @@
     "path": "x_draft.mjs"
   },
   {
-    "name": "github_issue_list",
+    "name": "github_issues_list",
     "description": "Lists issues from a GitHub repository.",
-    "path": "github_issue_list.mjs"
+    "path": "github_issues_list.mjs"
   },
   {
     "name": "github_issue_posts_list",
