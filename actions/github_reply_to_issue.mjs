@@ -209,55 +209,15 @@ export const openapi = {
 
 export const test = {
   setup: async (env) => {
-    // Mock browser.open function
-    env.browser = {
-      open: async (url, { script }) => {
-        // Simulate the execution of the script in a browser context
-        // For testing purposes, we'll use the provided HTML content
-        const posts = [];
-
-        // Create a DOM parser using DOMParser API
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(env.html_content, 'text/html');
-
-        // Simulate adding a comment
-        const textarea = doc.querySelector('textarea[name="comment[body]"]');
-        if (!textarea) {
-          return { success: false, error: "Comment textarea not found." };
-        }
-
-        textarea.value = env.message;
-        textarea.dispatchEvent(new Event('input', { bubbles: true }));
-
-        if (env.send) {
-          const commentButton = doc.querySelector('button[type="submit"][data-disable-with]');
-          if (commentButton) {
-            // Simulate clicking the comment button
-            // In reality, this would submit the form
-            // Here, we'll just assume it's successful
-            return { success: true, message: "Comment submitted successfully." };
-          } else {
-            return { success: false, error: "Comment button not found." };
-          }
-        } else {
-          return { success: true, message: "Comment added to the textarea." };
-        }
-      }
-    };
+    // no setup needed
   },
   cases: [
     {
       name: "replies without sending",
       params: {
-        url: "https://github.com/user/repo/issues/123",
+        url: "https://github.com/brianpetro/obsidian-smart-connections/issues/1",
         message: "This is a test comment.",
-        send: false,
-        html_content: `
-          <form action="/user/repo/issues/123" method="post">
-            <textarea name="comment[body]"></textarea>
-            <button type="submit" data-disable-with="Submitting...">Comment</button>
-          </form>
-        `
+        send: false
       },
       assert: async (assert, resp, env) => {
         assert.strictEqual(resp.success, true, "Should return success");
@@ -267,15 +227,9 @@ export const test = {
     {
       name: "replies and sends",
       params: {
-        url: "https://github.com/user/repo/issues/123",
+        url: "https://github.com/brianpetro/obsidian-smart-connections/issues/1",
         message: "This is a sent test comment.",
-        send: true,
-        html_content: `
-          <form action="/user/repo/issues/123" method="post">
-            <textarea name="comment[body]"></textarea>
-            <button type="submit" data-disable-with="Submitting...">Comment</button>
-          </form>
-        `
+        send: true
       },
       assert: async (assert, resp, env) => {
         assert.strictEqual(resp.success, true, "Should return success");
@@ -317,7 +271,7 @@ export const test = {
     {
       name: "handles missing message",
       params: {
-        url: "https://github.com/user/repo/issues/123",
+        url: "https://github.com/brianpetro/obsidian-smart-connections/issues/1",
         send: true
       },
       assert: async (assert, resp, env) => {

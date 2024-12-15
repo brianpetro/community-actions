@@ -181,54 +181,13 @@ export const openapi = {
 
 export const test = {
   setup: async (env) => {
-    // Mock browser.open function
-    env.browser = {
-      open: async (url, { script }) => {
-        // Simulate the execution of the script in a browser context
-        // For testing purposes, we'll use the provided HTML content
-        const posts = [];
-
-        // Create a DOM parser using DOMParser API
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(env.html_content, 'text/html');
-
-        const postElements = doc.querySelectorAll('.js-comment-container');
-
-        postElements.forEach((postEl) => {
-          const authorEl = postEl.querySelector('a.author, a.Link--secondary');
-          const author = authorEl ? authorEl.textContent.trim() : '';
-          const authorUrl = authorEl ? authorEl.href : '';
-
-          const avatarEl = postEl.querySelector('img.avatar-user');
-          const avatarUrl = avatarEl ? avatarEl.src : '';
-
-          const timestampEl = postEl.querySelector('relative-time');
-          const timestamp = timestampEl ? timestampEl.getAttribute('datetime') : '';
-
-          const contentEl = postEl.querySelector('.js-comment-body');
-          const content = contentEl ? contentEl.innerHTML.trim() : '';
-
-          if (author && timestamp && content) {
-            posts.push({
-              author,
-              author_url: authorUrl,
-              avatar_url: avatarUrl,
-              timestamp,
-              content
-            });
-          }
-        });
-
-        return Promise.resolve({ success: true, posts });
-      }
-    };
+    // no setup needed
   },
   cases: [
     {
       name: "lists posts successfully",
       params: {
-        url: "https://github.com/user/repo/issues/123",
-        html_content: `YOUR_HTML_CONTENT_HERE` // Replace with the provided HTML content
+        url: "https://github.com/brianpetro/obsidian-smart-connections/issues/1"
       },
       assert: async (assert, resp, env) => {
         assert.strictEqual(resp.success, true, "Should return success");

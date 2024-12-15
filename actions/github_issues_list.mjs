@@ -335,35 +335,7 @@ export const openapi = {
 
 export const test = {
   setup: async (env) => {
-    // Mock ipcRenderer
-    env.ipcRenderer = {
-      invoke: async (channel, ...args) => {
-        if (channel === 'browser-open') {
-          // Mock issues based on the limit
-          const [url, { script }] = args;
-          const mockIssues = [];
-          for (let i = 1; i <= 30; i++) {
-            mockIssues.push({
-              issue_number: `${800 + i}`,
-              title: `Test Issue ${i}`,
-              url: `https://github.com/brianpetro/obsidian-smart-connections/issues/${800 + i}`,
-              author_username: `user${i}`,
-              author_display_name: `User ${i}`,
-              timestamp: "2024-11-10T12:34:56.000Z",
-              labels: [`bug`, `enhancement`],
-              assignees: [`assignee${i}`],
-              milestone: `Milestone ${i}`,
-              comments_count: i
-            });
-          }
-          return Promise.resolve({
-            success: true,
-            issues: mockIssues
-          });
-        }
-        throw new Error('Unknown channel');
-      }
-    };
+    // no setup needed
   },
   cases: [
     {
@@ -440,12 +412,6 @@ export const test = {
       params: {
         repo: "brianpetro/obsidian-smart-connections",
         limit: 5
-      },
-      before: (env) => {
-        // Override ipcRenderer to simulate error
-        env.ipcRenderer.invoke = async () => {
-          throw new Error("Failed to list GitHub issues");
-        };
       },
       assert: async (assert, resp, env) => {
         assert.strictEqual(resp.success, false, "Should return failure");

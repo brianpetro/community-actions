@@ -220,15 +220,7 @@ export const openapi = {
 
 export const test = {
   setup: async (env) => {
-    // Mock ipcRenderer
-    env.ipcRenderer = {
-      invoke: async (channel, ...args) => {
-        if (channel === 'browser-open') {
-          return Promise.resolve("Tweet saved as draft successfully");
-        }
-        throw new Error('Unknown channel');
-      }
-    };
+    // no setup needed
   },
   cases: [
     {
