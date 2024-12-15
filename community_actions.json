@@ -48,5 +48,10 @@
     "name": "github_reply_to_issue",
     "description": "Replies to a GitHub issue.",
     "path": "github_reply_to_issue.mjs"
+  },
+  {
+    "name": "campfire_list_messages",
+    "description": "Lists messages from a Campfire room.",
+    "path": "campfire_list_messages.mjs"
   }
 ]
