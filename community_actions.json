@@ -50,6 +50,11 @@
     "path": "github_reply_to_issue.mjs"
   },
   {
+    "name": "github_search_issues",
+    "description": "Searches issues from a GitHub repository.",
+    "path": "github_search_issues.mjs"
+  },
+  {
     "name": "campfire_list_messages",
     "description": "Lists messages from a Campfire room.",
     "path": "campfire_list_messages.mjs"
