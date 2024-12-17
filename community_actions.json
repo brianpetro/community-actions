@@ -58,5 +58,10 @@
     "name": "campfire_list_messages",
     "description": "Lists messages from a Campfire room.",
     "path": "campfire_list_messages.mjs"
+  },
+  {
+    "name": "chatgpt_send_message",
+    "description": "Sends a message to ChatGPT and returns the assistant's response.",
+    "path": "chatgpt_send_message.mjs"
   }
 ]
