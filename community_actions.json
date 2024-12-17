@@ -63,5 +63,10 @@
     "name": "chatgpt_send_message",
     "description": "Sends a message to ChatGPT and returns the assistant's response.",
     "path": "chatgpt_send_message.mjs"
+  },
+  {
+    "name": "template_assignment",
+    "description": "Creates an assignment.",
+    "path": "template_assignment.mjs"
   }
 ]
