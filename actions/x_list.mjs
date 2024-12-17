@@ -397,43 +397,7 @@ export const openapi = {
 
 export const test = {
   setup: async (env) => {
-    // Mock ipcRenderer
-    env.ipcRenderer = {
-      invoke: async (channel, ...args) => {
-        if (channel === 'browser-open') {
-          // Mock tweets based on the limit
-          const [url, { script }] = args;
-          const mockTweets = [];
-          for (let i = 1; i <= 25; i++) {
-            mockTweets.push({
-              tweet: `Test tweet ${i} with [Link](https://x.com/example${i}) ![Alt ${i}](https://pbs.twimg.com/example${i}.jpg)`,
-              username: `user${i}`,
-              display_name: `User ${i}`,
-              tweet_id: `123456789${i}`,
-              tweet_url: `https://x.com/user${i}/status/123456789${i}`,
-              timestamp: "2024-10-29T12:34:56.000Z",
-              replies: i,
-              reposts: i * 2,
-              likes: i * 10,
-              bookmarks: i * 3,
-              views: i * 100,
-              verified: i % 2 === 0,
-              images: [
-                {
-                  src: `https://pbs.twimg.com/example${i}.jpg`,
-                  alt: `Alt ${i}`
-                }
-              ]
-            });
-          }
-          return Promise.resolve({
-            success: true,
-            tweets: mockTweets
-          });
-        }
-        throw new Error('Unknown channel');
-      }
-    };
+    // no setup needed
   },
   cases: [
     {

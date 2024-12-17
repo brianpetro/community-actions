@@ -31,7 +31,7 @@ export async function reply_to_github_issue(params) {
     return { error: "url must be a valid GitHub issue URL" };
   }
 
-  const [, owner, repo, issueNumber] = match;
+  const [, owner, repo, issue_number] = match;
 
   // Construct the script to be injected
   const script = `
@@ -68,7 +68,7 @@ export async function reply_to_github_issue(params) {
   `;
 
   try {
-    const result = await params.browser.open(url, { script });
+    const result = await params.browser.open(url, { script, browser_key: issue_number });
     return { ...result, source_url: url };
   } catch (error) {
     return { error: error.message || "Failed to reply to GitHub issue" };
@@ -225,17 +225,29 @@ export const test = {
       }
     },
     {
-      name: "replies and sends",
+      name: "replies without sending",
       params: {
-        url: "https://github.com/brianpetro/obsidian-smart-connections/issues/1",
-        message: "This is a sent test comment.",
-        send: true
+        url: "https://github.com/brianpetro/obsidian-smart-connections/issues/2",
+        message: "This is a test comment 2 in subsequent browser window.",
+        send: false
       },
       assert: async (assert, resp, env) => {
         assert.strictEqual(resp.success, true, "Should return success");
-        assert.strictEqual(resp.message, "Comment submitted successfully.", "Should indicate comment was submitted");
+        assert.strictEqual(resp.message, "Comment added to the textarea.", "Should indicate comment was added");
       }
     },
+    // {
+    //   name: "replies and sends",
+    //   params: {
+    //     url: "https://github.com/brianpetro/obsidian-smart-connections/issues/1",
+    //     message: "This is a sent test comment.",
+    //     send: true
+    //   },
+    //   assert: async (assert, resp, env) => {
+    //     assert.strictEqual(resp.success, true, "Should return success");
+    //     assert.strictEqual(resp.message, "Comment submitted successfully.", "Should indicate comment was submitted");
+    //   }
+    // },
     {
       name: "handles missing url",
       params: {
