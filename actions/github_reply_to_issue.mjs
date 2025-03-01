@@ -40,7 +40,7 @@ export async function reply_to_github_issue(params) {
         // Find the textarea for the comment
         const textarea = document.querySelector('textarea[name="comment[body]"]');
         if (!textarea) {
-          return_result({ success: false, error: "Comment textarea not found." });
+          return { success: false, error: "Comment textarea not found." };
         }
 
         // Set the comment message
@@ -54,15 +54,15 @@ export async function reply_to_github_issue(params) {
           const commentButton = document.querySelector('button[type="submit"][data-disable-with]');
           if (commentButton) {
             commentButton.click();
-            return_result({ success: true, message: "Comment submitted successfully." });
+            return { success: true, message: "Comment submitted successfully." };
           } else {
-            return_result({ success: false, error: "Comment button not found." });
+            return { success: false, error: "Comment button not found." };
           }
         } else {
-          return_result({ success: true, message: "Comment added to the textarea." });
+          return { success: true, message: "Comment added to the textarea." };
         }
       } catch (error) {
-        return_result({ success: false, error: error.message });
+        return { success: false, error: error.message };
       }
     })();
   `;

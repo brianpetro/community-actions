@@ -149,9 +149,9 @@ export async function github_search_issues(params) {
         }
 
         log(\`Extracted \${issues.length} issues after \${scrollAttempts} scroll attempts\`);
-        return_result({ success: true, issues: issues.slice(0, ${limit}) });
+        return { success: true, issues: issues.slice(0, ${limit}) };
       } catch (error) {
-        return_result({ success: false, error: error.message });
+        return { success: false, error: error.message };
       }
     })();
   `;

@@ -67,7 +67,7 @@ export async function bookmark_tweet(params) {
     while (attempt < MAX_RETRIES) {
       try {
         await find_and_bookmark_tweet();
-        return_result({ success: true, message: 'Tweet bookmarked successfully' });
+        return { success: true, message: 'Tweet bookmarked successfully' };
         return;
       } catch (error) {
         last_error = error;
@@ -83,7 +83,7 @@ export async function bookmark_tweet(params) {
 
     throw new Error(\`Failed after \${MAX_RETRIES} attempts. Last error: \${last_error.message}\`);
   } catch (error) {
-    return_result({ success: false, error: error.message });
+    return { success: false, error: error.message };
   }
 })();
 `;

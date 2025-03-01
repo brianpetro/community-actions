@@ -110,9 +110,9 @@ export async function campfire_list_messages(params) {
         }
 
         log(\`Extracted \${messages.length} messages after \${scrollAttempts} scroll attempts.\`);
-        return_result({ success: true, messages: messages.slice(0, ${limit}) });
+        return { success: true, messages: messages.slice(0, ${limit}) };
       } catch (error) {
-        return_result({ success: false, error: error.message });
+        return { success: false, error: error.message };
       }
     })();
   `;

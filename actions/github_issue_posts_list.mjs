@@ -49,9 +49,9 @@ export async function list_github_issue_posts(params) {
           }
         });
 
-        return_result({ success: true, posts });
+        return { success: true, posts };
       } catch (error) {
-        return_result({ success: false, error: error.message });
+        return { success: false, error: error.message };
       }
     })();
   `;

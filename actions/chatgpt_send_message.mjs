@@ -140,13 +140,13 @@ export async function chatgpt_send_message(params) {
 
         const thread_url = window.location.href;
 
-        return_result({
+        return {
           success: true,
           thread_url: thread_url,
           response: finalResponse
-        });
+        };
       } catch (error) {
-        return_result({ success: false, error: error.message });
+        return { success: false, error: error.message };
       }
     })();
   `;

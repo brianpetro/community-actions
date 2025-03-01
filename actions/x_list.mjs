@@ -196,9 +196,9 @@ export async function list_tweets(params) {
         }
 
         log(\`Extracted \${tweets.length} tweets after \${scrollAttempts} scroll attempts\`);
-        return_result({ success: true, tweets: tweets.slice(0, ${limit}) });
+        return { success: true, tweets: tweets.slice(0, ${limit}) };
       } catch (error) {
-        return_result({ success: false, error: error.message });
+        return { success: false, error: error.message };
       }
     })();
   `;

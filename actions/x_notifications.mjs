@@ -148,12 +148,12 @@ export async function list_notifications(params) {
           scrollAttempts++;
         }
 
-        return_result({ 
+        return { 
           success: true, 
           notifications: notifications.slice(0, ${limit})
-        });
+        };
       } catch (error) {
-        return_result({ success: false, error: error.message });
+        return { success: false, error: error.message };
       }
     })();
   `;

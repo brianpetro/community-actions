@@ -110,9 +110,9 @@ export async function draft_tweet(params) {
         });
         log('Save/Discard modal disappeared. Tweet saved as draft successfully!');
 
-        return_result({ success: true, message: 'Tweet saved as draft successfully' });
+        return { success: true, message: 'Tweet saved as draft successfully' };
       } catch (error) {
-        return_result({ success: false, error: error.message });
+        return { success: false, error: error.message };
       }
 
       function sleep(ms) {
